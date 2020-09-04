@@ -16,3 +16,36 @@ RunOptions <- CreateRunOptions(FUN_MOD = RunModel_GR4J,
                                InputsModel = InputsModel, IndPeriod_Run = Ind_Run,
                                IniStates = NULL, IniResLevels = NULL, IndPeriod_WarmUp = NULL)
 str(RunOptions)
+
+#InputsCrit
+InputsCrit <- CreateInputsCrit(FUN_CRIT = ErrorCrit_NSE, InputsModel = InputsModel,
+                               RunOptions = RunOptions, VarObs = "Q", Obs = BasinObs$Qmm[Ind_Run])
+str(InputsCrit)
+
+#CalibOptions object
+CalibOptions <- CreateCalibOptions(FUN_MOD = RunModel_GR4J, FUN_CALIB = Calibration_Michel)
+str(CalibOptions)
+
+##calibration
+OutputsCalib <- Calibration_Michel(InputsModel = InputsModel, RunOptions = RunOptions,
+                                   InputsCrit = InputsCrit, CalibOptions = CalibOptions,
+                                   FUN_MOD = RunModel_GR4J)
+Param <- OutputsCalib$ParamFinalR
+Param
+
+##Control
+#Simulation
+
+OutputsModel <- RunModel_GR4J(InputsModel = InputsModel, RunOptions = RunOptions, Param = Param)
+str(OutputsModel)
+
+#results preview
+
+plot(OutputsModel, Qobs = BasinObs$Qmm[Ind_Run])
+
+#efficiency criterion
+
+OutputsCrit <- ErrorCrit_NSE(InputsCrit = InputsCrit, OutputsModel = OutputsModel)
+str(OutputsCrit)
+OutputsCrit <- ErrorCrit_KGE(InputsCrit = InputsCrit, OutputsModel = OutputsModel)
+str(OutputsCrit)
